@@ -1,0 +1,48 @@
+@import '@angular/material/theming';
+@include mat-core();
+
+$primary: mat-palette($mat-indigo);
+$accent: mat-palette($mat-pink, A200, A100, A400);
+$warn: mat-palette($mat-red);
+
+$theme: mat-light-theme($primary, $accent, $warn);
+
+@include angular-material-theme($theme);
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+.mat-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.mat-card {
+  margin-bottom: 20px;
+}
+
+.mat-form-field {
+  width: 100%;
+}
+
+.mat-table {
+  width: 100%;
+}
+
+.mat-paginator {
+  margin-top: 20px;
+}
+
+.error-message {
+  color: mat-color($warn);
+  margin-top: 10px;
+}
+
+.success-message {
+  color: mat-color($primary);
+  margin-top: 10px;
+} 
