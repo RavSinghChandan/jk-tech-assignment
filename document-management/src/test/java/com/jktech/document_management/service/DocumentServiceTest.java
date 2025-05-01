@@ -14,17 +14,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -135,5 +136,16 @@ class DocumentServiceTest {
 
         // Then
         verify(documentRepository).delete(any());
+    }
+
+    @Test
+    void deleteDocument_ShouldThrowExceptionWhenDocumentNotFound() {
+        // Given
+        when(documentRepository.findById(any())).thenReturn(Optional.empty());
+
+        // When/Then
+        assertThrows(RuntimeException.class, () -> documentService.deleteDocument(1L));
+        verify(documentRepository).findById(1L);
+        verify(documentRepository, never()).delete(any());
     }
 } 
