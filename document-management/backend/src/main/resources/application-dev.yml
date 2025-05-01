@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/document_management_dev
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  redis:
+    host: localhost
+    port: 6379
+  security:
+    jwt:
+      secret: dev-secret-key
+      expiration: 3600000 # 1 hour
+
+logging:
+  level:
+    root: DEBUG
+    com.jktech.document_management: DEBUG
+    org.springframework: DEBUG
+    org.hibernate: DEBUG 

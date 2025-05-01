@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/document_management_perf
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  redis:
+    host: localhost
+    port: 6379
+  security:
+    jwt:
+      secret: perf-test-secret-key
+      expiration: 3600000 # 1 hour
+
+logging:
+  level:
+    root: WARN
+    com.jktech.document_management: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+
+performance:
+  test:
+    document-count: 10000
+    search-iterations: 1000
+    max-search-time-ms: 100 

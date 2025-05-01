@@ -1,0 +1,34 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/document_management_integration
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  redis:
+    host: localhost
+    port: 6379
+  security:
+    jwt:
+      secret: integration-test-secret-key
+      expiration: 3600000 # 1 hour
+
+logging:
+  level:
+    root: INFO
+    com.jktech.document_management: DEBUG
+    org.springframework: INFO
+    org.hibernate: INFO
+
+integration:
+  test:
+    user-count: 10
+    document-count: 100
+    search-iterations: 50 

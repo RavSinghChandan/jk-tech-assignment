@@ -1,8 +1,10 @@
 package com.jktech.document_management.service;
 
-import com.jktech.document_management.model.Document;
-import com.jktech.document_management.model.User;
+import com.jktech.document_management.dto.DocumentDTO;
+import com.jktech.document_management.entity.Document;
+import com.jktech.document_management.entity.User;
 import com.jktech.document_management.repository.DocumentRepository;
+import com.jktech.document_management.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,17 +13,18 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -32,100 +35,105 @@ class DocumentServiceTest {
     private DocumentRepository documentRepository;
 
     @Mock
-    private FileStorageService fileStorageService;
+    private UserRepository userRepository;
+
+    @Mock
+    private Authentication authentication;
+
+    @Mock
+    private SecurityContext securityContext;
 
     @InjectMocks
     private DocumentService documentService;
 
-    private User testUser;
-    private Document testDocument;
-    private MultipartFile testFile;
+    private Document mockDocument;
+    private User mockUser;
+    private Page<Document> mockPage;
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
+        mockUser = User.builder()
                 .id(1L)
                 .email("test@example.com")
-                .password("password")
                 .build();
 
-        testDocument = Document.builder()
+        mockDocument = Document.builder()
                 .id(1L)
                 .title("Test Document")
-                .content("Test Content")
-                .fileType("application/pdf")
+                .fileType("pdf")
                 .filePath("/path/to/file")
-                .uploadedBy(testUser)
-                .uploadedAt(LocalDateTime.now())
-                .lastModifiedAt(LocalDateTime.now())
-                .isDeleted(false)
+                .uploadedBy(mockUser)
                 .build();
 
-        testFile = new MockMultipartFile(
+        List<Document> documents = Arrays.asList(mockDocument);
+        mockPage = new PageImpl<>(documents);
+
+        SecurityContextHolder.setContext(securityContext);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getName()).thenReturn("test@example.com");
+        when(userRepository.findByEmail(any())).thenReturn(Optional.of(mockUser));
+    }
+
+    @Test
+    void uploadDocument_ShouldSaveAndReturnDocument() {
+        // Given
+        MockMultipartFile file = new MockMultipartFile(
                 "file",
                 "test.pdf",
                 "application/pdf",
-                "Test content".getBytes()
+                "test content".getBytes()
         );
-    }
 
-    @Test
-    void uploadDocument_Success() throws IOException {
-        when(fileStorageService.storeFile(any())).thenReturn("/path/to/file");
-        when(fileStorageService.extractContent(any())).thenReturn("Test content");
-        when(documentRepository.save(any())).thenReturn(testDocument);
+        when(documentRepository.save(any())).thenReturn(mockDocument);
 
-        Document result = documentService.uploadDocument(testFile, "Test Document", testUser);
+        // When
+        DocumentDTO result = documentService.uploadDocument(file, "Test Document");
 
+        // Then
         assertNotNull(result);
-        assertEquals("Test Document", result.getTitle());
-        verify(documentRepository, times(1)).save(any());
+        assertEquals(mockDocument.getId(), result.getId());
+        assertEquals(mockDocument.getTitle(), result.getTitle());
+        verify(documentRepository).save(any());
     }
 
     @Test
-    void getUserDocuments_Success() {
-        Page<Document> page = new PageImpl<>(Collections.singletonList(testDocument));
-        when(documentRepository.findByUploadedByAndIsDeletedFalse(any(), any())).thenReturn(page);
+    void getDocuments_ShouldReturnPageOfDocuments() {
+        // Given
+        when(documentRepository.findByUploadedBy(any(), any())).thenReturn(mockPage);
 
-        Page<Document> result = documentService.getUserDocuments(testUser, Pageable.unpaged());
+        // When
+        Page<DocumentDTO> result = documentService.getDocuments(0, 10);
 
-        assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
-        verify(documentRepository, times(1)).findByUploadedByAndIsDeletedFalse(any(), any());
-    }
-
-    @Test
-    void searchDocuments_Success() {
-        Page<Document> page = new PageImpl<>(Collections.singletonList(testDocument));
-        when(documentRepository.searchByKeyword(any(), any())).thenReturn(page);
-
-        Page<Document> result = documentService.searchDocuments("test", Pageable.unpaged());
-
+        // Then
         assertNotNull(result);
         assertEquals(1, result.getTotalElements());
-        verify(documentRepository, times(1)).searchByKeyword(any(), any());
+        verify(documentRepository).findByUploadedBy(any(), any());
     }
 
     @Test
-    void deleteDocument_Success() {
-        when(documentRepository.findById(any())).thenReturn(Optional.of(testDocument));
-        when(documentRepository.save(any())).thenReturn(testDocument);
+    void searchDocuments_ShouldReturnPageOfDocuments() {
+        // Given
+        when(documentRepository.searchByTitleAndUser(any(), any(), any())).thenReturn(mockPage);
 
-        documentService.deleteDocument(1L, testUser);
+        // When
+        Page<DocumentDTO> result = documentService.searchDocuments("test", 0, 10);
 
-        assertTrue(testDocument.isDeleted());
-        verify(documentRepository, times(1)).save(any());
-    }
-
-    @Test
-    void getAllUserDocuments_Success() {
-        List<Document> documents = Collections.singletonList(testDocument);
-        when(documentRepository.findByUploadedByAndIsDeletedFalse(any())).thenReturn(documents);
-
-        List<Document> result = documentService.getAllUserDocuments(testUser);
-
+        // Then
         assertNotNull(result);
-        assertEquals(1, result.size());
-        verify(documentRepository, times(1)).findByUploadedByAndIsDeletedFalse(any());
+        assertEquals(1, result.getTotalElements());
+        verify(documentRepository).searchByTitleAndUser(any(), any(), any());
+    }
+
+    @Test
+    void deleteDocument_ShouldDeleteDocument() {
+        // Given
+        when(documentRepository.findById(any())).thenReturn(Optional.of(mockDocument));
+        doNothing().when(documentRepository).delete(any());
+
+        // When
+        documentService.deleteDocument(1L);
+
+        // Then
+        verify(documentRepository).delete(any());
     }
 } 

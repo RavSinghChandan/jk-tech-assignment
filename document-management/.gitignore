@@ -1,3 +1,42 @@
+# Frontend
+frontend/dist/
+frontend/node_modules/
+frontend/.angular/
+frontend/.vscode/
+frontend/coverage/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Backend
+backend/target/
+backend/.idea/
+backend/*.iml
+backend/.project
+backend/.classpath
+backend/.settings/
+backend/.springBeans
+backend/.factorypath
+backend/.metadata/
+backend/bin/
+backend/tmp/
+backend/out/
+backend/.gradle/
+backend/build/
+backend/.DS_Store
+
+# Common
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
 HELP.md
 target/
 !.mvn/wrapper/maven-wrapper.jar
