@@ -18,7 +18,7 @@ import java.util.List;
 @RequestMapping("/api/v1/documents")
 @RequiredArgsConstructor
 public class DocumentController {
-\
+
     private final DocumentService documentService;
 
     @PostMapping("/upload")

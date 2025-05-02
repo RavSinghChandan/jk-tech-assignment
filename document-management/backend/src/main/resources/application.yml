@@ -10,20 +10,27 @@ spring:
     show-sql: true
     properties:
       hibernate:
-        format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
   redis:
     host: localhost
     port: 6379
   cache:
     type: redis
-  security:
-    jwt:
-      secret: ${JWT_SECRET:your-secret-key}
-      expiration: 86400000 # 24 hours
+    redis:
+      time-to-live: 600000
 
 server:
   port: 8080
+
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration: 86400000
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.jktech.document_management: DEBUG
 
 management:
   endpoints:
@@ -34,11 +41,4 @@ management:
     health:
       show-details: always
     prometheus:
-      enabled: true
-
-logging:
-  level:
-    root: INFO
-    com.jktech.document_management: DEBUG
-    org.springframework: WARN
-    org.hibernate: WARN 
+      enabled: true 
