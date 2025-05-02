@@ -1,4 +1,4 @@
-package com.jktech.document_management.repository;
+git stpackage com.jktech.document_management.repository;
 
 import com.jktech.document_management.model.User;
 import com.jktech.document_management.model.Role;
